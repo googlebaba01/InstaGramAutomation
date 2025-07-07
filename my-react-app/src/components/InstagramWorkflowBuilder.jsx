@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
-import { Play, MessageCircle, Send, Instagram, ArrowRight, Check, Settings, Heart, MoreHorizontal, Bookmark, Share, Home, Search, PlusSquare, User, Film } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
-const InstagramWorkflowBuilder = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [commentKeyword, setCommentKeyword] = useState('');
-  const [dmMessage, setDmMessage] = useState('');
-  const [isLive, setIsLive] = useState(false);
-
-  // Mock Instagram posts data
+const InstagramDMAutomation = () => {
+  // Mock data
   const mockPosts = [
     {
       id: 1,
@@ -81,414 +74,292 @@ const InstagramWorkflowBuilder = () => {
       comments: 234,
       timeAgo: '12h',
       isVerified: true
-    },
-    {
-      id: 7,
-      type: 'post',
-      image: 'https://picsum.photos/400/500?random=7',
-      avatar: 'https://picsum.photos/50/50?random=17',
-      username: 'nature_lover',
-      caption: 'Beautiful mountain view! 🏔️ Nature never fails to amaze me. Where\'s your favorite hiking spot?',
-      likes: 967,
-      comments: 34,
-      timeAgo: '14h',
-      isVerified: false
-    },
-    {
-      id: 8,
-      type: 'reel',
-      image: 'https://picsum.photos/400/500?random=8',
-      avatar: 'https://picsum.photos/50/50?random=18',
-      username: 'art_studio',
-      caption: 'Creating magic with colors! 🎨 Time-lapse of my latest painting. Comment "ART" for tutorials.',
-      likes: 2890,
-      comments: 112,
-      timeAgo: '16h',
-      isVerified: true
     }
   ];
 
-  const handlePostSelect = (post) => {
+  // State
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [isLive, setIsLive] = useState(false);
+  const [triggerKeyword, setTriggerKeyword] = useState('');
+  const [dmMessage, setDmMessage] = useState('');
+
+  const selectPost = (post) => {
     setSelectedPost(post);
     setCurrentStep(2);
   };
 
-  const handleCommentSetup = () => {
-    if (commentKeyword.trim()) {
+  const nextStep = () => {
+    if (currentStep === 2 && triggerKeyword.trim()) {
       setCurrentStep(3);
+    } else if (currentStep === 3 && dmMessage.trim()) {
+      // Ready to go live
     }
   };
 
-  const handleDMSetup = () => {
-    if (dmMessage.trim()) {
-      setCurrentStep(4);
-    }
+  const resetWorkflow = () => {
+    setCurrentStep(1);
+    setSelectedPost(null);
+    setTriggerKeyword('');
+    setDmMessage('');
+    setIsLive(false);
   };
 
   const goLive = () => {
     setIsLive(true);
   };
 
-  const resetWorkflow = () => {
-    setCurrentStep(1);
-    setSelectedPost(null);
-    setCommentKeyword('');
-    setDmMessage('');
-    setIsLive(false);
-  };
-
-  const PostCard = ({ post, isSelected }) => (
+  const PostCard = ({ post }) => (
     <div 
-      onClick={() => handlePostSelect(post)}
-      className={`bg-white rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer border-2 ${
-        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+      className={`bg-white rounded-2xl overflow-hidden shadow-lg transition-all duration-300 cursor-pointer border-2 hover:transform hover:-translate-y-1 hover:shadow-xl ${
+        selectedPost?.id === post.id ? 'border-indigo-500 -translate-y-1' : 'border-transparent'
       }`}
+      onClick={() => selectPost(post)}
     >
       <div className="relative">
-        <img
-          src={post.image}
-          alt="Post"
-          className="w-full h-48 object-cover rounded-t-xl"
-        />
+        <img src={post.image} alt="Post" className="w-full h-48 object-cover" />
         {post.type === 'reel' && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
-            <Film className="w-3 h-3" />
-            <span>Reel</span>
-          </div>
-        )}
-        {isSelected && (
-          <div className="absolute top-2 left-2 bg-blue-500 text-white rounded-full p-1">
-            <Check className="w-4 h-4" />
+          <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded-xl text-xs">
+            🎬 Reel
           </div>
         )}
       </div>
-      
-      <div className="p-4">
-        <div className="flex items-center space-x-2 mb-2">
-          <img
-            src={post.avatar}
-            alt={post.username}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-          <div className="flex items-center space-x-1">
-            <span className="font-semibold text-sm">{post.username}</span>
-            {post.isVerified && (
-              <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-              </svg>
-            )}
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <img src={post.avatar} alt={post.username} className="w-8 h-8 rounded-full object-cover" />
+          <div>
+            <div className="font-semibold text-sm text-gray-800">
+              {post.username} {post.isVerified && <span className="text-blue-500">✓</span>}
+            </div>
+            <div className="text-xs text-gray-400">{post.timeAgo}</div>
           </div>
-          <span className="text-xs text-gray-500">• {post.timeAgo}</span>
         </div>
-        
-        <p className="text-sm text-gray-700 mb-2 line-clamp-2">{post.caption}</p>
-        
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center space-x-4">
-            <span className="flex items-center space-x-1">
-              <Heart className="w-4 h-4" />
-              <span>{post.likes.toLocaleString()}</span>
-            </span>
-            <span className="flex items-center space-x-1">
-              <MessageCircle className="w-4 h-4" />
-              <span>{post.comments}</span>
-            </span>
+      </div>
+      <div className="p-4">
+        <div className="text-sm text-gray-600 line-height-1.4 mb-3">{post.caption}</div>
+        <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-1">❤️ {post.likes.toLocaleString()}</div>
+            <div className="flex items-center gap-1">💬 {post.comments}</div>
           </div>
-          <span className={`px-2 py-1 rounded-full text-xs ${
-            post.type === 'reel' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+          <div className={`px-2 py-1 rounded-xl text-xs font-medium ${
+            post.type === 'reel' 
+              ? 'bg-pink-100 text-pink-700' 
+              : 'bg-blue-100 text-blue-700'
           }`}>
             {post.type === 'reel' ? 'Reel' : 'Post'}
-          </span>
+          </div>
         </div>
       </div>
     </div>
   );
 
-  const InstagramPost = ({ post }) => (
-    <div className="bg-white">
-      {/* Post Header */}
-      <div className="flex items-center justify-between p-3">
-        <div className="flex items-center space-x-3">
-          <img
-            src={post.avatar}
-            alt={post.username}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-          <div className="flex items-center space-x-1">
-            <p className="font-semibold text-sm">{post.username}</p>
-            {post.isVerified && (
-              <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-              </svg>
-            )}
+  const PhonePreview = () => (
+    <div className="w-80 h-160 bg-black rounded-3xl p-2 shadow-2xl">
+      <div className="w-full h-full bg-white rounded-2xl overflow-hidden relative">
+        <div className="px-5 py-4 bg-white border-b border-gray-100 flex items-center justify-between">
+          <div className="font-semibold text-sm">9:41</div>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-gradient-to-r from-pink-500 to-purple-600 rounded-md flex items-center justify-center text-white text-xs font-bold">📷</div>
+            <span className="font-bold text-base">Instagram</span>
           </div>
-          <span className="text-xs text-gray-500">• {post.timeAgo}</span>
+          <div>•••</div>
         </div>
-        <MoreHorizontal className="w-5 h-5 text-gray-600" />
-      </div>
-
-      {/* Post Image */}
-      <div className="relative">
-        <img
-          src={post.image}
-          alt="Post"
-          className="w-full h-64 object-cover"
-        />
-        {post.type === 'reel' && (
-          <div className="absolute bottom-2 left-2">
-            <Film className="w-5 h-5 text-white" />
-          </div>
-        )}
-      </div>
-
-      {/* Post Actions */}
-      <div className="p-3">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-4">
-            <Heart className="w-6 h-6 text-gray-700 hover:text-red-500 cursor-pointer" />
-            <MessageCircle className="w-6 h-6 text-gray-700 hover:text-gray-900 cursor-pointer" />
-            <Share className="w-6 h-6 text-gray-700 hover:text-gray-900 cursor-pointer" />
-          </div>
-          <Bookmark className="w-6 h-6 text-gray-700 hover:text-gray-900 cursor-pointer" />
-        </div>
-
-        <p className="font-semibold text-sm mb-1">{post.likes.toLocaleString()} likes</p>
-        <p className="text-sm">
-          <span className="font-semibold">{post.username}</span> {post.caption}
-        </p>
-        <p className="text-sm text-gray-500 mt-1 cursor-pointer hover:text-gray-700">View all {post.comments} comments</p>
         
-        {/* Add Comment Input */}
-        <div className="mt-2 pt-2 border-t border-gray-100">
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              className="flex-1 text-sm bg-transparent focus:outline-none"
-            />
-            <button className="text-blue-500 text-sm font-semibold hover:text-blue-600">
-              Post
-            </button>
-          </div>
+        <div className="h-96 overflow-y-auto p-5">
+          {selectedPost ? (
+            <div className="bg-white rounded-xl overflow-hidden shadow-lg">
+              <div className="px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <img src={selectedPost.avatar} alt={selectedPost.username} className="w-8 h-8 rounded-full object-cover" />
+                  <div>
+                    <div className="font-semibold text-sm">
+                      {selectedPost.username} {selectedPost.isVerified && '✓'}
+                    </div>
+                    <div className="text-xs text-gray-400">{selectedPost.timeAgo}</div>
+                  </div>
+                </div>
+                <div>⋯</div>
+              </div>
+              <img src={selectedPost.image} alt="Post" className="w-full h-48 object-cover" />
+              <div className="p-4">
+                <div className="flex items-center gap-4 mb-3">
+                  <div>❤️</div>
+                  <div>💬</div>
+                  <div>📤</div>
+                </div>
+                <div className="text-sm text-gray-600">{selectedPost.caption}</div>
+                
+                {(triggerKeyword || dmMessage) && (
+                  <div className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-xl">
+                    <div className="text-xs font-semibold mb-2 opacity-90">AUTOMATION PREVIEW</div>
+                    <div className="bg-white bg-opacity-10 p-3 rounded-lg text-xs leading-relaxed">
+                      {triggerKeyword && (
+                        <div className="mb-2">
+                          Trigger: <span className="bg-white bg-opacity-20 px-2 py-1 rounded font-semibold">{triggerKeyword}</span>
+                        </div>
+                      )}
+                      {dmMessage && (
+                        <div>Auto-DM: "{dmMessage}"</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center text-center text-gray-400">
+              <div>
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl">📱</div>
+                <div className="text-lg font-semibold text-gray-600 mb-1">Select a post to preview</div>
+                <div className="text-sm">Choose from the grid on the left</div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-5 py-4 flex justify-between items-center">
+          <div className="w-6 h-6 text-gray-800">🏠</div>
+          <div className="w-6 h-6 text-gray-400">🔍</div>
+          <div className="w-6 h-6 text-gray-400">➕</div>
+          <div className="w-6 h-6 text-gray-400">❤️</div>
+          <div className="w-6 h-6 text-gray-400">👤</div>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Instagram className="w-8 h-8 text-pink-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Comment-to-DM Automation</h1>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 text-gray-800">
+      <div className="max-w-7xl mx-auto p-5">
+        {/* Header */}
+        <header className="bg-white bg-opacity-95 backdrop-blur-sm rounded-2xl p-6 mb-8 shadow-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg font-bold">📱</div>
+            <h1 className="text-3xl font-bold text-gray-800">Comment-to-DM Automation</h1>
           </div>
-          <div className={`px-4 py-2 rounded-full text-sm font-medium ${
-            isLive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+          <div className={`px-4 py-2 rounded-2xl text-sm font-semibold transition-all duration-300 ${
+            isLive 
+              ? 'bg-green-100 text-green-700 animate-pulse' 
+              : 'bg-gray-100 text-gray-600'
           }`}>
             {isLive ? 'Live' : 'Draft'}
           </div>
-        </div>
-      </div>
+        </header>
 
-      <div className="flex h-screen">
-        {/* Left Section - Post/Reel Selection Grid */}
-        <div className="w-2/3 p-6 overflow-y-auto">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Select Post or Reel</h2>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="flex items-center space-x-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
-                }`}>
-                  {currentStep > 1 ? <Check className="w-4 h-4" /> : '1'}
-                </div>
-                <span className="text-sm font-medium">Select Content</span>
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-150">
+          {/* Left Panel */}
+          <div className="lg:col-span-2 bg-white bg-opacity-95 backdrop-blur-sm rounded-3xl p-8 shadow-xl overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-5">Select Post or Reel</h2>
+            
+            {/* Progress Steps */}
+            <div className="flex items-center gap-5 mb-10">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
+                  currentStep >= 1 ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-400'
+                }`}>1</div>
+                <span className="text-sm font-medium text-gray-600">Select Content</span>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400" />
-              <div className="flex items-center space-x-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
-                }`}>
-                  {currentStep > 2 ? <Check className="w-4 h-4" /> : '2'}
-                </div>
-                <span className="text-sm font-medium">Set Trigger</span>
+              <div className="w-5 h-0.5 bg-gray-200 relative">
+                <div className="absolute right-0 top-0 w-0 h-0 border-l-2 border-l-gray-200 border-t border-t-transparent border-b border-b-transparent"></div>
               </div>
-              <ArrowRight className="w-4 h-4 text-gray-400" />
-              <div className="flex items-center space-x-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
-                }`}>
-                  {currentStep > 3 ? <Check className="w-4 h-4" /> : '3'}
-                </div>
-                <span className="text-sm font-medium">Configure DM</span>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
+                  currentStep >= 2 ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-400'
+                }`}>2</div>
+                <span className="text-sm font-medium text-gray-600">Set Trigger</span>
+              </div>
+              <div className="w-5 h-0.5 bg-gray-200 relative">
+                <div className="absolute right-0 top-0 w-0 h-0 border-l-2 border-l-gray-200 border-t border-t-transparent border-b border-b-transparent"></div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
+                  currentStep >= 3 ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-400'
+                }`}>3</div>
+                <span className="text-sm font-medium text-gray-600">Configure DM</span>
               </div>
             </div>
-          </div>
 
-          {/* Posts Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            {mockPosts.map((post) => (
-              <PostCard key={post.id} post={post} isSelected={selectedPost?.id === post.id} />
-            ))}
-          </div>
+            {/* Posts Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-10">
+              {mockPosts.map(post => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
 
-          {/* Workflow Setup */}
-          {currentStep >= 2 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Automation Setup</h3>
-              
-              <div className="space-y-6">
-                {/* Step 2: Comment Trigger */}
-                {currentStep >= 2 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-900">Comment Trigger Keyword</h4>
-                    <div className="flex space-x-3">
-                      <input
-                        type="text"
-                        value={commentKeyword}
-                        onChange={(e) => setCommentKeyword(e.target.value)}
-                        placeholder="e.g., 'DM me', 'interested', 'info'"
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      {currentStep === 2 && (
-                        <button
-                          onClick={handleCommentSetup}
-                          disabled={!commentKeyword.trim()}
-                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-                        >
-                          Next
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: DM Message */}
+            {/* Workflow Setup */}
+            {selectedPost && (
+              <div className="bg-white rounded-2xl p-8 shadow-lg">
+                <h3 className="text-xl font-bold text-gray-800 mb-6">Automation Setup</h3>
+                
+                <div className="mb-6">
+                  <label className="block font-semibold text-gray-800 mb-2 text-sm">Comment Trigger Keyword</label>
+                  <input 
+                    type="text" 
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 bg-gray-50 focus:outline-none focus:border-indigo-500 focus:bg-white focus:shadow-lg"
+                    placeholder="e.g., 'DM me', 'interested', 'info'"
+                    value={triggerKeyword}
+                    onChange={(e) => setTriggerKeyword(e.target.value)}
+                  />
+                </div>
+                
                 {currentStep >= 3 && (
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-900">Auto-DM Message</h4>
-                    <textarea
+                  <div className="mb-6">
+                    <label className="block font-semibold text-gray-800 mb-2 text-sm">Auto-DM Message</label>
+                    <textarea 
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm transition-all duration-300 bg-gray-50 focus:outline-none focus:border-indigo-500 focus:bg-white focus:shadow-lg resize-vertical min-h-24"
+                      placeholder="Hi! Thanks for your interest. Here's the information you requested..."
                       value={dmMessage}
                       onChange={(e) => setDmMessage(e.target.value)}
-                      placeholder="Hi! Thanks for your interest. Here's the information you requested..."
-                      rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {currentStep === 3 && (
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={handleDMSetup}
-                          disabled={!dmMessage.trim()}
-                          className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-                        >
-                          Preview & Go Live
-                        </button>
-                        <button
-                          onClick={resetWorkflow}
-                          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                        >
-                          Reset
-                        </button>
-                      </div>
-                    )}
                   </div>
                 )}
-
-                {/* Step 4: Go Live */}
-                {currentStep >= 4 && !isLive && (
-                  <div className="text-center py-4">
-                    <button
-                      onClick={goLive}
-                      className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-lg flex items-center space-x-2 mx-auto"
+                
+                <div className="flex gap-4">
+                  {currentStep < 3 && (
+                    <button 
+                      className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-semibold text-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2"
+                      onClick={nextStep}
+                      disabled={currentStep === 2 && !triggerKeyword.trim()}
                     >
-                      <Play className="w-5 h-5" />
-                      <span>Go Live</span>
+                      Next
                     </button>
-                  </div>
-                )}
-
-                {isLive && (
-                  <div className="text-center py-4">
-                    <div className="px-8 py-3 bg-red-600 text-white rounded-lg font-medium text-lg flex items-center space-x-2 mx-auto w-fit">
-                      <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                      <span>Automation is Live!</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Section - Phone UI */}
-        <div className="w-1/3 bg-gray-100 p-6 flex items-center justify-center">
-          <div className="relative">
-            {/* Phone Frame */}
-            <div className="w-80 h-[600px] bg-black rounded-3xl p-2 shadow-2xl">
-              <div className="w-full h-full bg-white rounded-2xl overflow-hidden relative">
-                {/* Phone Status Bar */}
-                <div className="bg-white px-6 py-3 flex justify-between items-center text-sm font-medium border-b border-gray-100">
-                  <span>9:41</span>
-                  <div className="flex items-center space-x-1">
-                    <Instagram className="w-5 h-5 text-gray-900" />
-                    <span className="font-bold text-lg">Instagram</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-1 h-1 bg-black rounded-full"></div>
-                    <div className="w-1 h-1 bg-black rounded-full"></div>
-                    <div className="w-1 h-1 bg-black rounded-full"></div>
-                  </div>
-                </div>
-
-                {/* Instagram Content */}
-                <div className="h-full overflow-y-auto">
-                  {selectedPost ? (
-                    <div className="pb-16">
-                      <InstagramPost post={selectedPost} />
-                      
-                      {/* Workflow Status */}
-                      {currentStep >= 2 && (
-                        <div className="p-4 bg-blue-50 border-t border-blue-200 mx-4 my-4 rounded-lg">
-                          <div className="text-sm space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span className="font-medium text-blue-900">Trigger: "{commentKeyword}"</span>
-                            </div>
-                            {currentStep >= 3 && (
-                              <div className="bg-white p-3 rounded-lg border border-blue-200">
-                                <p className="text-xs font-medium text-blue-600 mb-1">Auto-DM Preview:</p>
-                                <p className="text-sm text-gray-700">{dmMessage}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500 p-8">
-                      <div className="text-center">
-                        <Instagram className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                        <p className="text-lg font-medium text-gray-700">Select a post to preview</p>
-                        <p className="text-sm text-gray-500">Choose from the grid on the left</p>
-                      </div>
-                    </div>
                   )}
-                </div>
-
-                {/* Phone Bottom Navigation */}
-                <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3">
-                  <div className="flex justify-between items-center">
-                    <Home className="w-6 h-6 text-gray-900" />
-                    <Search className="w-6 h-6 text-gray-600" />
-                    <PlusSquare className="w-6 h-6 text-gray-600" />
-                    <Heart className="w-6 h-6 text-gray-600" />
-                    <User className="w-6 h-6 text-gray-600" />
-                  </div>
+                  
+                  {currentStep === 3 && !isLive && (
+                    <button 
+                      className="px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg flex items-center gap-2"
+                      onClick={goLive}
+                      disabled={!dmMessage.trim()}
+                    >
+                      🚀 Go Live
+                    </button>
+                  )}
+                  
+                  {isLive && (
+                    <button 
+                      className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold text-base animate-pulse"
+                      disabled
+                    >
+                      🔴 Automation is Live!
+                    </button>
+                  )}
+                  
+                  <button 
+                    className="px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm transition-all duration-300 hover:bg-gray-200"
+                    onClick={resetWorkflow}
+                  >
+                    Reset
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Right Panel - Phone Mockup */}
+          <div className="flex items-center justify-center bg-white bg-opacity-95 backdrop-blur-sm rounded-3xl p-8 shadow-xl">
+            <PhonePreview />
           </div>
         </div>
       </div>
@@ -496,4 +367,4 @@ const InstagramWorkflowBuilder = () => {
   );
 };
 
-export default InstagramWorkflowBuilder;
+export default InstagramDMAutomation;

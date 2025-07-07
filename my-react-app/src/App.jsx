@@ -1,10 +1,10 @@
-import InstagramWorkflowBuilder from './components/InstagramWorkflowBuilder'
+import InstagramDMAutomation from './components/InstagramWorkflowBuilder'
 
 function App() {
 
   return (
     <>
-    <InstagramWorkflowBuilder/>
+    <InstagramDMAutomation/>
     </>
   )
 }
